@@ -1,16 +1,35 @@
 package de.diedavids.bo.model;
 
-import java.util.Date;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.Table;
 
+@Entity
+@Table(name = "ORDERS")
 public class Order {
 
-    private Date orderDate;
+    @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    private Long id;
 
-    public Date getOrderDate() {
-        return orderDate;
+    private String customer;
+
+    public Long getId() {
+        return id;
     }
 
-    public void setOrderDate(Date orderDate) {
-        this.orderDate = orderDate;
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+
+    public String getCustomer() {
+        return customer;
+    }
+
+    public void setCustomer(String customer) {
+        this.customer = customer;
     }
 }

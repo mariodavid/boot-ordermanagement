@@ -12,7 +12,7 @@ public class OrderRepositoryStub {
         List<Order> orders = new LinkedList<Order>();
 
         Order order1 = new Order();
-        order1.setOrderDate(new Date());
+        order1.setCustomer("Klaus Customer");
         orders.add(order1);
 
         return orders;
