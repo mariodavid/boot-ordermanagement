@@ -15,6 +15,7 @@ public class Order {
     private Long id;
 
     private String customer;
+    private Integer totalAmount;
 
     public Long getId() {
         return id;
@@ -31,5 +32,13 @@ public class Order {
 
     public void setCustomer(String customer) {
         this.customer = customer;
+    }
+
+    public Integer getTotalAmount() {
+        return totalAmount;
+    }
+
+    public void setTotalAmount(Integer totalAmount) {
+        this.totalAmount = totalAmount;
     }
 }
