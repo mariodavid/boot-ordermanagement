@@ -166,9 +166,9 @@ class App extends React.Component {
                     })}
                     </tbody>
                 </table>
-                <hr/>
 
                 <div className="order-detail">
+                    <hr/>
                     <h2>Order details: {this.state.selectedOrder.customer}</h2>
                     <form className="order-form" onSubmit={this.saveOrder}>
                         <div className="form-group">
