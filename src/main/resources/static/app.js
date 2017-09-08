@@ -1,60 +1,17 @@
-class Order extends React.Component {
-
-    constructor(props) {
-        super(props);
-        this.state = {display: true};
-
-        this.handleEdit = this.handleEdit.bind(this);
-        this.handleDelete = this.handleDelete.bind(this);
-    }
-
-    handleDelete() {
-        var self = this;
-        $.ajax({
-            url: "http://localhost:8181/orders/" + self.props.order.id,
-            type: 'DELETE',
-            success: function (result) {
-                self.setState({display: false});
-            },
-            error: function (xhr, ajaxOptions, thrownError) {
-                toastr.error(xhr.responseJSON.message);
-            }
-        });
-    }
-
-    handleEdit(event) {
-        this.props.selectOrder(this.props.order)
-        // var self = this;
-        // var data = {
-        //     id: self.props.order.id,
-        //     customer: "Hansi",
-        //     totalAmount: 16767
-        // };
-        // $.ajax({
-        //     url: "http://localhost:8181/orders/" + self.props.order.id,
-        //     type: 'PUT',
-        //     contentType: "application/json",
-        //     data: JSON.stringify(data),
-        //     success: function (result) {
-        //         self.setState({display: true});
-        //     },
-        //     error: function (xhr, ajaxOptions, thrownError) {
-        //         toastr.error(xhr.responseJSON.message);
-        //     }
-        // });
-    }
+class OrderRow extends React.Component {
 
     render() {
-        if (this.state.display == false) return null;
-        else return (
+        return (
             <tr>
                 <td>{this.props.order.customer}</td>
                 <td>{this.props.order.totalAmount}</td>
                 <td>
                     <div className="btn-group">
-                        <button className="btn btn-xs btn-primary" onClick={this.handleEdit}><span
+                        <button className="btn btn-xs btn-primary"
+                                onClick={() => this.props.editOrder(this.props.order)}><span
                             className="glyphicon glyphicon-edit"/></button>
-                        <button className="btn btn-xs btn-danger" onClick={this.handleDelete}><span
+                        <button className="btn btn-xs btn-danger"
+                                onClick={() => this.props.deleteOrder(this.props.order)}><span
                             className="glyphicon glyphicon-remove"/></button>
                     </div>
                 </td>
@@ -63,104 +20,34 @@ class Order extends React.Component {
     }
 }
 
-class OrderForm extends React.Component{
-
-    constructor(props) {
-        super(props);
-        this.state = {order: props.order};
-
-        this.handleChange = this.handleChange.bind(this);
-        this.handleSubmit = this.handleSubmit.bind(this);
-    }
-    handleChange(event) {
-        const target = event.target;
-        const value = target.type === 'checkbox' ? target.checked : target.value;
-        const name = target.name;
-
-        var partialState = this.state;
-        partialState.order[name] = value;
-        this.setState(partialState);
-    }
-    handleSubmit(event) {
-        alert('Your favorite flavor is: ' + this.state.order);
-        this.setState({order: event.target.value});
-        event.preventDefault();
-    }
-
-
-    render() {
-        return (
-            <div>
-                <h2>Order details: {this.state.order.customer}</h2>
-                <form className="order-form">
-                    <div className="form-group">
-                        <label htmlFor="customer">Customer</label>
-                        <input
-                            onChange={this.handleChange}
-                            className="form-control"
-                            name="customer"
-                            type="text"
-                            placeholder="Cutomer (required)..."
-                            value={this.state.order.customer}
-                        />
-                    </div>
-
-                    <div className="form-group">
-                        <label htmlFor="totalAmount">Total Amount</label>
-                        <input
-                            onChange={this.handleChange}
-                            className="form-control"
-                            name="totalAmount"
-                            type="text"
-                            placeholder="Total amount..."
-                            value={this.state.order.totalAmount}
-                        />
-                    </div>
-
-                    <button type="submit" className="btn btn-default">Save</button>
-                </form>
-            </div>
-        );
-    }
-
-}
-
-
-var OrderTable = React.createClass({
-    render: function () {
-        var rows = [];
-        var self = this;
-        this.props.orders.forEach(function (order, i) {
-            rows.push(<Order key={i} order={order} selectOrder={self.props.selectOrder}/>);
-        });
-        return (
-            <table className="table table-striped">
-                <thead>
-                <tr>
-                    <th>Customer</th>
-                    <th>Order Date</th>
-                    <th>Actions</th>
-                </tr>
-                </thead>
-                <tbody>{rows}</tbody>
-            </table>
-        );
-    }
-});
-
 
 class App extends React.Component {
 
     constructor(props) {
         super(props);
         this.state = {
-            selectedOrder: {},
+            selectedOrder: {
+                customer: "",
+                id: "",
+                totalAmount: "",
+            },
             orders: []
         };
 
-        this.selectOrder = this.selectOrder.bind(this)
+        this.loadOrdersFromServer = this.loadOrdersFromServer.bind(this)
+        this.handleCustomerEdit = this.handleCustomerEdit.bind(this)
+        this.handleTotalAmountEdit = this.handleTotalAmountEdit.bind(this)
+        this.createOrder = this.createOrder.bind(this)
+        this.editOrder = this.editOrder.bind(this)
+        this.deleteOrder = this.deleteOrder.bind(this)
+        this.saveOrder = this.saveOrder.bind(this)
     }
 
+
+    componentDidMount() {
+        this.loadOrdersFromServer();
+        $(".order-detail").hide()
+    }
 
     loadOrdersFromServer() {
         var self = this;
@@ -171,13 +58,79 @@ class App extends React.Component {
         });
     }
 
-    componentDidMount() {
-        this.loadOrdersFromServer();
+
+    deleteOrder(order){
+
+        var self = this;
+
+        $.ajax({
+            url: "http://localhost:8181/orders/" + order.id,
+            type: 'DELETE',
+            success: function (result) {
+                toastr.info('Order deleted sucessfully...')
+                self.loadOrdersFromServer();
+            },
+            error: function (xhr, ajaxOptions, thrownError) {
+                toastr.error(xhr.responseJSON.message);
+            }
+        });
     }
 
-    selectOrder (selectedOrder) {
-        this.setState({
-            selectedOrder: selectedOrder
+    editOrder(order){
+        $(".order-detail").fadeIn()
+        this.setState({selectedOrder: order})
+    }
+
+    createOrder(){
+        $(".order-detail").fadeIn()
+        this.setState({selectedOrder: {
+            id: null,
+            customer: "",
+            totalAmount: "",
+        }})
+    }
+
+    saveOrder(event) {
+
+        $(".order-detail").fadeOut()
+        event.preventDefault()
+
+        const order = this.state.selectedOrder
+
+        var url = "http://localhost:8181/orders/";
+        var type = "POST"
+        if (order.id !== null) {
+            url = url + order.id;
+            type = "PUT"
+        }
+
+        var self = this;
+        $.ajax({
+            url: url,
+            type: type,
+            contentType: "application/json",
+            data: JSON.stringify(order),
+            success: function (result) {
+                toastr.info('Order edited sucessfully...')
+                self.loadOrdersFromServer();
+            },
+            error: function (xhr, ajaxOptions, thrownError) {
+                toastr.error(xhr.responseJSON.message);
+                console.error(xhr.responseJSON.message)
+            }
+        });
+    }
+
+    handleCustomerEdit(event) {
+        const changedValue = event.target.value;
+        this.setState((prevState) => {
+            return { selectedOrder: {id: prevState.selectedOrder.id, totalAmount: prevState.selectedOrder.totalAmount, customer: changedValue}}
+        })
+    }
+    handleTotalAmountEdit(event) {
+        const changedValue = event.target.value;
+        this.setState((prevState) => {
+            return { selectedOrder: {id: prevState.selectedOrder.id, totalAmount: changedValue, customer: prevState.selectedOrder.customer}}
         })
     }
 
@@ -185,9 +138,69 @@ class App extends React.Component {
 
         return (
             <div>
-                <OrderTable orders={this.state.orders} selectOrder={this.selectOrder}/>
+                <div className="pull-right">
+                    <button className="btn btn-default" onClick={this.loadOrdersFromServer}>
+                        <span className="glyphicon glyphicon-refresh" />
+                    </button>
+                    <button className="btn btn-primary" onClick={this.createOrder}>
+                        <span className="glyphicon glyphicon-plus" />
+                    </button>
+                </div>
+                <table className="table table-striped">
+                    <thead>
+                    <tr>
+                        <th>Customer</th>
+                        <th>Total Amount</th>
+                        <th>Actions</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {this.state.orders.sort((a,b) => a.id - b.id).map((order,index) => {
+
+                        return <OrderRow
+                            deleteOrder={this.deleteOrder}
+                            editOrder= {this.editOrder}
+                            order = {order}
+                            key={index}
+                        />
+                    })}
+                    </tbody>
+                </table>
                 <hr/>
-                <OrderForm order={this.state.selectedOrder} />
+
+                <div className="order-detail">
+                    <h2>Order details: {this.state.selectedOrder.customer}</h2>
+                    <form className="order-form" onSubmit={this.saveOrder}>
+                        <div className="form-group">
+                            <label htmlFor="customer">Customer</label>
+                            <input
+                                className="form-control"
+                                name="customer"
+                                type="text"
+                                required
+                                onChange={this.handleCustomerEdit}
+                                placeholder="Cutomer..."
+                                value={this.state.selectedOrder.customer}
+                            />
+                        </div>
+
+                        <div className="form-group">
+                            <label htmlFor="totalAmount">Total Amount</label>
+                            <input
+                                className="form-control"
+                                name="totalAmount"
+                                type="text"
+                                required
+                                placeholder="Total amount..."
+                                onChange={this.handleTotalAmountEdit}
+                                value={this.state.selectedOrder.totalAmount}
+                            />
+                        </div>
+
+                        <button type="submit" className="btn btn-default">Save</button>
+                    </form>
+                </div>
+
             </div>
         );
     }
