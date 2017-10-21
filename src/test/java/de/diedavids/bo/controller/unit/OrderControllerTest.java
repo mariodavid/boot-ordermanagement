@@ -9,6 +9,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
+import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -39,7 +40,7 @@ public class OrderControllerTest {
 
 		when(orderRepository.findAll()).thenReturn(expectedOrders);
 
-		List<Order> actualOrders = sut.list();
+		Collection<Order> actualOrders = sut.list();
 
 		// default JUnit assertions
 		assertEquals(expectedOrders, actualOrders);

@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 
+import java.util.Collection;
 import java.util.List;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -30,7 +31,7 @@ public class OrderRepositoryIntegrationTest {
 	@Test
 	public void listShouldReturnAllOrders() {
 
-		List<Order> actualOrders = orderRepository.findAll();
+		Collection<Order> actualOrders = orderRepository.findAll();
 		assertThat(actualOrders.size(),is(greaterThanOrEqualTo(1)));
 	}
 
